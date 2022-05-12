@@ -6,7 +6,7 @@ module.exports = {
    * @param {object} node The current node.
    * @param {object} config The node configuration.
    */
-  ready(RED, node, config) {
+  ready (RED, node, config)  {
     // Get credentials node
     const credentialsNode = RED.nodes.getNode(config.auth);
 
@@ -18,20 +18,41 @@ module.exports = {
     // Set the node status to 'connecting'
     this.setNodeStatusToConnecting(node);
 
-    return new Promise((resolve, reject) => {
-      credentialsNode.getCredentials().then(response => {
+    if (globalThis.connectionPool == undefined)
+      globalThis.connectionPool = [];
+
+    // search for stored connection(Promise) in global array
+    for (let storedConnection of globalThis.connectionPool) {
+      if (storedConnection.credential == config.auth) {
+        this.setNodeStatusToConnected(node);
+        return storedConnection.connection;
+      }
+    }
+
+    let connectionPromise = new Promise((resolve, reject) => {
+
+      credentialsNode.connection.getCredentials().then(response => {
         if (response.error) {
           this.setNodeStatusToDisconnected(node);
           return reject(response);
         }
+
         this.setNodeStatusToConnected(node);
-        return resolve(credentialsNode.connection);
+        return resolve (credentialsNode.connection);
       })
       .catch(error => {
-        this.setNodeStatusToDisconnected(node);
+        this.setNodeStatusToDisconnected (node);
         reject(error);
       });
     });
+
+    let newConnection = {
+      credential: config.auth,
+      connection: connectionPromise
+    };
+    globalThis.connectionPool.push(newConnection); //append to global array for reuse
+
+    return connectionPromise;
   },
 
   /**
