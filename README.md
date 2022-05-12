@@ -31,3 +31,6 @@ Step-by-step guide - https://youtu.be/DbBqa-rq31g
 
 ### Special Thanks
 - [@skydiver](https://github.com/skydiver) - [eWeLink API](https://github.com/skydiver/ewelink-api)
+
+### Reason for fork
+Changed original version with [this](https://github.com/ottoszika/node-red-contrib-ewelink/issues/77#issuecomment-755246109)
